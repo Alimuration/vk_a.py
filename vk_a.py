@@ -2,7 +2,7 @@ import requests
 import vk_api
 
 session = requests.Session()
-login, password = '89371635054', 'Solder748@gmail.com'
+login, password = 'login', 'password'
 vk_session = vk_api.VkApi(login, password)
 
 try:
