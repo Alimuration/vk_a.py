@@ -33,35 +33,65 @@ def main():
         return
     longpoll = VkLongPoll(vk)
     vk = vk.get_api()
+    attachments = []
+    upload = VkUpload(vk)
+    image_url = 'https://www.meme-arsenal.com/memes/0dad556c3aaa0fb4a164c0a890e3e569.jpg'
+    image = session.get(image_url, stream=True)
+    photo = upload.photo_messages(photos=image.raw)[0]
+    attachments.append(
+        'photo{}_{}'.format(photo['owner_id'], photo['id'])
+    )
+
     for event in longpoll.listen():
+
         if event.type == VkEventType.MESSAGE_NEW and event.to_me and event.text:
-            wordyes = ['да', ' дыа', ' д а ', ' согл', 'даа', ]
+            wordyes = ['да', ' дыа', 'д а ', ' согл', 'даа', ]
             wordno = ['нет', 'не-а', 'неа', 'не', 'нетушки', 'неть', 'не согласен']
             wordhi = ['йо', 'привет', 'здарова', 'здравствуйте', 'доброе', 'дорбый', 'йоу']
+            wordblg = ['спасибо', 'благодарю', 'благодарствую', 'спс', 'пасибо', 'спасибки', 'спасибочки']
+            words = 'мурат,срочно'
             for x in range(len(wordhi)):
-                if event.from_user and wordhi[x] in event.text.lower():
+                if event.from_user and (wordhi[x] in event.text.lower()
+                                        or event.text.lower() == 'мурат'):
                     vk.messages.send(
                         user_id=event.user_id,
-                        message='привет, сейчас занят (от бота)',
+                        message='сейчас занят (Сол Гудмэн)',
                         random_id=get_random_id()
                     )
                     break
-            for i in range(len(wordyes)):  # Если написали заданную фразу
-                if event.from_user and wordyes[i] in event.text.lower():
-                    vk.messages.send(
-                        user_id=event.user_id,
-                        message='нет (от бота)',
-                        random_id=get_random_id()
-                    )
-                    break
+            if event.from_chat and event.text.lower() == 'мурат':
+                vk.messages.send(
+                    user_id=event.user_id,
+                    message='сейчас занят и отвечает его автоответчик, если это срочно напишите !мурат,срочно!(Сол Гудмэн)',
+                    attachment=','.join(attachments),
+                    random=get_random_id()
+                )
+                break  # Если написали заданную фразу
+            if event.from_user and event.text == 'да' or event.text == 'lf' or event.text == 'дыа' or event.text == 'дааа' or event.text == 'да!':
+                vk.messages.send(
+                    user_id=event.user_id,
+                    message='нет (Сол Гудмэн)',
+                    random_id=get_random_id()
+                )
+                break
             for n in range(len(wordno)):
                 if event.from_user and wordno[n] in event.text.lower():
                     vk.messages.send(
                         user_id=event.user_id,
-                        message=choice(wordyes) + '(от бота)',
+                        message=choice(wordyes) + '(Сол Гудмэн)',
                         random_id=get_random_id()
                     )
                     break
+            for x in range(len(wordblg)):
+                if event.from_user and wordblg[x] in event.text.lower():
+                    vk.messages.send(
+                        user_id=event.user_id,
+                        message='Пожалуйста (Сол Гудмэн)' + 'https://www.youtube.com/watch?v=LvYG3jEkMlE',
+                        random_id=get_random_id()
+                    )
+                    break
+            if event.from_user and words in event.text.lower():
+                print("ответь сейчас это важно")
 
 
 if __name__ == '__main__':
