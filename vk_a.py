@@ -41,39 +41,44 @@ def main():
     attachments.append(
         'photo{}_{}'.format(photo['owner_id'], photo['id'])
     )
-
     for event in longpoll.listen():
-
         if event.type == VkEventType.MESSAGE_NEW and event.to_me and event.text:
             wordyes = ['да', ' дыа', 'д а ', ' согл', 'даа', ]
             wordno = ['нет', 'не-а', 'неа', 'не', 'нетушки', 'неть', 'не согласен']
             wordhi = ['йо', 'привет', 'здарова', 'здравствуйте', 'доброе', 'дорбый', 'йоу']
             wordblg = ['спасибо', 'благодарю', 'благодарствую', 'спс', 'пасибо', 'спасибки', 'спасибочки']
             words = 'мурат,срочно'
+            idusers = []
             for x in range(len(wordhi)):
-                if event.from_user and (wordhi[x] in event.text.lower()
-                                        or event.text.lower() == 'мурат'):
+                if (event.from_user and (wordhi[x] in event.text.lower()
+                                         or event.text.lower() == 'мурат')) and event.user_id not in idusers:
                     vk.messages.send(
                         user_id=event.user_id,
-                        message='сейчас занят (Сол Гудмэн)',
+                        message='сейчас занят и отвечает его автоответчик, если это срочно напишите !мурат,срочно!(Сол Гудмэн)',
+                        attachment=','.join(attachments),
                         random_id=get_random_id()
                     )
+                    print("message was send by: " + str(event.user_id),
+                          "and his(er) was added on massive" + str(idusers))
                     break
-            if event.from_chat and event.text.lower() == 'мурат':
-                vk.messages.send(
-                    user_id=event.user_id,
-                    message='сейчас занят и отвечает его автоответчик, если это срочно напишите !мурат,срочно!(Сол Гудмэн)',
-                    attachment=','.join(attachments),
-                    random=get_random_id()
-                )
-                break  # Если написали заданную фразу
-            if event.from_user and event.text == 'да' or event.text == 'lf' or event.text == 'дыа' or event.text == 'дааа' or event.text == 'да!':
-                vk.messages.send(
-                    user_id=event.user_id,
-                    message='нет (Сол Гудмэн)',
-                    random_id=get_random_id()
-                )
-                break
+                if event.from_chat and event.text.lower() == 'мурат':
+                    vk.messages.send(
+                        user_id=event.user_id,
+                        message='сейчас занят и отвечает его автоответчик, если это срочно напишите !мурат,срочно!(Сол Гудмэн)',
+                        attachment=','.join(attachments),
+                        random=get_random_id()
+                    )
+                    print('сообщение привет 1')
+                    break
+                if event.from_user and event.text == 'да' or event.text == 'lf' or event.text == 'дыа' or event.text == 'дааа' or event.text == 'да!':
+                    vk.messages.send(
+                        user_id=event.user_id,
+                        message='нет (Сол Гудмэн)',
+                        random_id=get_random_id()
+                    )
+                    print('сообщение привет 2')
+                    break
+            idusers.append(event.user_id)
             for n in range(len(wordno)):
                 if event.from_user and wordno[n] in event.text.lower():
                     vk.messages.send(
@@ -81,6 +86,7 @@ def main():
                         message=choice(wordyes) + '(Сол Гудмэн)',
                         random_id=get_random_id()
                     )
+                    print('сообщение привет 3')
                     break
             for x in range(len(wordblg)):
                 if event.from_user and wordblg[x] in event.text.lower():
@@ -89,9 +95,23 @@ def main():
                         message='Пожалуйста (Сол Гудмэн)' + 'https://www.youtube.com/watch?v=LvYG3jEkMlE',
                         random_id=get_random_id()
                     )
+                    print('сообщение привет 4')
                     break
             if event.from_user and words in event.text.lower():
                 print("ответь сейчас это важно")
+                vk.messages.send(
+                    user_id=event.user_id,
+                    message='скоро он ответит (Сол Гудмэн)',
+                    random_id=get_random_id()
+                )
+                print('сообщение привет 5')
+                print(idusers)
+                index = idusers.index(int(event.user_id))
+                idusers.remove(idusers[index])
+                print(idusers)
+                for i in range(3):
+                    chime.theme('mario')
+                    chime.success()
 
 
 if __name__ == '__main__':
