@@ -1,11 +1,19 @@
 import requests
 import vk_api
+import chime
 from vk_api.longpoll import VkLongPoll, VkEventType
 from vk_api.utils import get_random_id
 from random import choice
+from vk_api import VkUpload
+from itertools import groupby
 
 session = requests.Session()
-
+wordyes = ['да', ' дыа', 'д а ', ' согл', 'даа', ]
+wordno = ['нет', 'не-а', 'неа', 'не', 'нетушки', 'неть', 'не согласен']
+wordhi = ['йо', 'привет', 'здарова', 'здравствуйте', 'доброе', 'дорбый', 'йоу']
+wordblg = ['спасибо', 'благодарю', 'благодарствую', 'спс', 'пасибо', 'спасибки', 'спасибочки']
+words = 'мурат,срочно'
+idusers = []
 
 def auth_handler():
     key = input("Enter authentication code: ")
@@ -13,18 +21,12 @@ def auth_handler():
     remember_device = True
     return key, remember_device
 
-
-def captcha_handler(captcha):
-    key = input("Enter captcha code {0}: ".format(captcha.get_url())).strip()
-    return captcha.try_again(key)
-
-
 def main():
     login, password = 'phonenumber', 'password'
+    global vk, idusers
     vk = vk_api.VkApi(
         login, password, app_id=2685278,
-        auth_handler=auth_handler,
-        captcha_handler=captcha_handler
+        auth_handler=auth_handler
     )
     try:
         vk.auth(token_only=True)
@@ -43,76 +45,47 @@ def main():
     )
     for event in longpoll.listen():
         if event.type == VkEventType.MESSAGE_NEW and event.to_me and event.text:
-            wordyes = ['да', ' дыа', 'д а ', ' согл', 'даа', ]
-            wordno = ['нет', 'не-а', 'неа', 'не', 'нетушки', 'неть', 'не согласен']
-            wordhi = ['йо', 'привет', 'здарова', 'здравствуйте', 'доброе', 'дорбый', 'йоу']
-            wordblg = ['спасибо', 'благодарю', 'благодарствую', 'спс', 'пасибо', 'спасибки', 'спасибочки']
-            words = 'мурат,срочно'
-            idusers = []
-            for x in range(len(wordhi)):
-                if (event.from_user and (wordhi[x] in event.text.lower()
-                                         or event.text.lower() == 'мурат')) and event.user_id not in idusers:
-                    vk.messages.send(
-                        user_id=event.user_id,
-                        message='сейчас занят и отвечает его автоответчик, если это срочно напишите !мурат,срочно!(Сол Гудмэн)',
-                        attachment=','.join(attachments),
-                        random_id=get_random_id()
-                    )
-                    print("message was send by: " + str(event.user_id),
-                          "and his(er) was added on massive" + str(idusers))
-                    break
-                if event.from_chat and event.text.lower() == 'мурат':
-                    vk.messages.send(
-                        user_id=event.user_id,
-                        message='сейчас занят и отвечает его автоответчик, если это срочно напишите !мурат,срочно!(Сол Гудмэн)',
-                        attachment=','.join(attachments),
-                        random=get_random_id()
-                    )
-                    print('сообщение привет 1')
-                    break
-                if event.from_user and event.text == 'да' or event.text == 'lf' or event.text == 'дыа' or event.text == 'дааа' or event.text == 'да!':
-                    vk.messages.send(
-                        user_id=event.user_id,
-                        message='нет (Сол Гудмэн)',
-                        random_id=get_random_id()
-                    )
-                    print('сообщение привет 2')
-                    break
+            answer_message(event,
+                           'сейчас занят и отвечает его автоответчик, если это срочно напишите !мурат,срочно!(Сол Гудмэн)',
+                           wordhi, attachments)
+            send_message(event, 'нет (Сол Гудмэн)', wordyes)
+            send_message(event, choice(wordyes) + ' (Сол Гудмэн)', wordno)
+            send_message(event, 'Пожалуйста (Сол Гудмэн)' + 'https://www.youtube.com/watch?v=LvYG3jEkMlE', wordblg)
             idusers.append(event.user_id)
-            for n in range(len(wordno)):
-                if event.from_user and wordno[n] in event.text.lower():
-                    vk.messages.send(
-                        user_id=event.user_id,
-                        message=choice(wordyes) + '(Сол Гудмэн)',
-                        random_id=get_random_id()
-                    )
-                    print('сообщение привет 3')
-                    break
-            for x in range(len(wordblg)):
-                if event.from_user and wordblg[x] in event.text.lower():
-                    vk.messages.send(
-                        user_id=event.user_id,
-                        message='Пожалуйста (Сол Гудмэн)' + 'https://www.youtube.com/watch?v=LvYG3jEkMlE',
-                        random_id=get_random_id()
-                    )
-                    print('сообщение привет 4')
-                    break
             if event.from_user and words in event.text.lower():
-                print("ответь сейчас это важно")
                 vk.messages.send(
                     user_id=event.user_id,
                     message='скоро он ответит (Сол Гудмэн)',
                     random_id=get_random_id()
                 )
-                print('сообщение привет 5')
-                print(idusers)
+                idusers = [el for el, _ in groupby(idusers)]
                 index = idusers.index(int(event.user_id))
                 idusers.remove(idusers[index])
-                print(idusers)
+                print("ответь сейчас это важно")
                 for i in range(3):
                     chime.theme('mario')
                     chime.success()
 
+def send_message(event, message, words_type):
+    for n in range(len(words_type)):
+        if event.from_user and words_type[n] in event.text.lower():
+            vk.messages.send(
+                user_id=event.user_id,
+                message=message,
+                random_id=get_random_id()
+            )
+            break
+
+def answer_message(event, message, word_type, attachments):
+    for i in range(len(word_type)):
+        if (event.from_user or event.from_chat) and word_type[i] in event.text.lower() and event.user_id not in idusers:
+            vk.messages.send(
+                user_id=event.user_id,
+                message=message,
+                attachment=','.join(attachments),
+                random_id=get_random_id()
+            )
+            break
 
 if __name__ == '__main__':
     main()
