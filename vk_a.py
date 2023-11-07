@@ -6,7 +6,7 @@ from vk_api.utils import get_random_id
 from random import choice
 from vk_api import VkUpload
 from itertools import groupby
-
+#Если вы хотите, что бы он у вас работал, тогда придётся скачивать через pip желательно requests и vk_api ибо всё это сюда не добавить))
 session = requests.Session()
 wordyes = ['да', ' дыа', 'д а ', ' согл', 'даа', ]
 wordno = ['нет', 'не-а', 'неа', 'не', 'нетушки', 'неть', 'не согласен']
